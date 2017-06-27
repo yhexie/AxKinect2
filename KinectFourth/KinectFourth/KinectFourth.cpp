@@ -94,7 +94,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	IMultiSourceFrame* m_pMultiFrame = nullptr;
 	cv::Ptr<cv::ORB> detector;
 	cv::Mat descriptor_1;
-	detector = ORB::create();//cv::FeatureDetector::("ORB");
+	detector = ORB::create("ORB");//cv::FeatureDetector::("ORB");
 	//descriptor = cv::DescriptorExtractor::compute("ORB");
 	vector<cv::KeyPoint> kp1, kp2;
 	
@@ -191,12 +191,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		imwrite("img.png", result);
 		if (waitKey(1) == VK_ESCAPE)
 			break;
-		detector->detectAndCompute(result, Mat(), kp1, descriptor_1);
+		detector->compute(result, kp1, descriptor_1);
 		cv::Mat imgShow(424, 512, CV_8UC3);
 		int fromTo1[] = {0,0,1,1,2,2};
 		mixChannels(&result, 1, &imgShow, 1, fromTo1, 3);
-		cv::drawKeypoints(result, kp1, imgShow, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
-		imshow("keypoints", imgShow);
+		if (kp1.size()>0)
+		{
+			cv::drawKeypoints(result, kp1, imgShow, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
+			imshow("keypoints", imgShow);
+		}
+		
 		/*imshow("ir", i_ir);
 		if (waitKey(1) == VK_ESCAPE)
 			break;*/
