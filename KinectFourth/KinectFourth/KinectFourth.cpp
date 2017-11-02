@@ -91,7 +91,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat i_rgb(1080, 1920, CV_8UC4);      //注意：这里必须为4通道的图，Kinect的数据只能以Bgra格式传出
 	Mat i_depth(424, 512, CV_16UC1);
 	Mat i_ir(424, 512, CV_16UC1);
-	Mat result(424, 512, CV_8UC4);
+	Mat result(424, 512, CV_8UC3);
 
 	UINT16 *depthData = new UINT16[424 * 512];
 	IMultiSourceFrame* m_pMultiFrame = nullptr;
@@ -212,10 +212,10 @@ int _tmain(int argc, _TCHAR* argv[])
 					if ((X >= 0 && X < 512) && (Y >= 0 && Y < 424))
 					{
 						//cout << "X:       " << X << "     Y:      " << Y << endl;
-						result.data[4 * (Y * 512 + X)] = i_rgb.data[4 * icor];
-						result.data[4 * (Y * 512 + X) + 1] = i_rgb.data[4 * icor + 1];
-						result.data[4 * (Y * 512 + X) + 2] = i_rgb.data[4 * icor + 2];
-						result.data[4 * (Y * 512 + X) + 3] = i_rgb.data[4 * icor + 3];
+						result.data[3 * (Y * 512 + X)] = i_rgb.data[4 * icor];
+						result.data[3 * (Y * 512 + X) + 1] = i_rgb.data[4 * icor + 1];
+						result.data[3 * (Y * 512 + X) + 2] = i_rgb.data[4 * icor + 2];
+						//result.data[4 * (Y * 512 + X) + 3] = i_rgb.data[4 * icor + 3];
 
 					}
 				}
@@ -239,10 +239,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		_detector->detect(result, kp1);  //提取关键点
 
 		cv::Mat image;
-		image.create(result.rows, result.cols, CV_8UC3);
-		//src.copyTo(image);  
-		int fromTo1[] = { 0, 0, 1, 1, 2, 2 };
-		mixChannels(&result, 1, &image, 1, fromTo1, 3);
+		//image.create(result.rows, result.cols, CV_8UC3);
+		////src.copyTo(image);  
+		//int fromTo1[] = { 0, 0, 1, 1, 2, 2 };
+		//mixChannels(&result, 1, &image, 1, fromTo1, 3);
 		cv::drawKeypoints(result, kp1, image, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 		cv::imshow("keypoints", image);
 		cv::imwrite("data\\keypoints.png", image);
@@ -282,9 +282,9 @@ int _tmain(int argc, _TCHAR* argv[])
 						float cameraZ = -static_cast<float>(y);
 						if (file)
 						{
-							int b = result.data[idx * 4 + 0];
-							int g = result.data[idx * 4 + 1];
-							int r = result.data[idx * 4 + 2];
+							int b = result.data[idx * 3 + 0];
+							int g = result.data[idx * 3 + 1];
+							int r = result.data[idx * 3 + 2];
    							fprintf(file, "%.4f %.4f %.4f %d %d %d\n", cameraX, cameraY, cameraZ, r, g, b);
 						}
 					}
