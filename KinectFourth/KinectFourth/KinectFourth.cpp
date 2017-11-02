@@ -7,7 +7,7 @@
 #include <opencv2/core/core.hpp>  
 #include <opencv2/highgui/highgui.hpp>  
 #include <opencv2/features2d/features2d.hpp>
-//#include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <Eigen/Dense>
 
@@ -47,8 +47,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	intricDepth << camera_fx, 0, camera_cx,
 				   0, camera_fy, camera_cy,
 		           0, 0, 1;
-	Eigen::Matrix3d intricdepth2RGB;
-	intricdepth2RGB = intricRGB*intricDepth.inverse();
+	Eigen::Matrix3d intricDepth2RGB;
+	intricDepth2RGB = intricRGB*intricDepth.inverse();
+
+	Eigen::Matrix3d intricRGB2Depth;
+	intricRGB2Depth = intricDepth*intricRGB.inverse();
 	// 获取Kinect设备
 	IKinectSensor* m_pKinectSensor;
 	HRESULT hr;
@@ -92,11 +95,17 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	UINT16 *depthData = new UINT16[424 * 512];
 	IMultiSourceFrame* m_pMultiFrame = nullptr;
-	cv::Ptr<cv::ORB> detector;
-	cv::Mat descriptor_1;
-	detector = ORB::create("ORB");//cv::FeatureDetector::("ORB");
-	//descriptor = cv::DescriptorExtractor::compute("ORB");
-	vector<cv::KeyPoint> kp1, kp2;
+	// 声明特征提取器与描述子提取器
+	cv::Ptr<cv::FeatureDetector> _detector;
+	cv::Ptr<cv::DescriptorExtractor> _descriptor;
+
+	// 构建提取器，默认两者都为sift
+	// 构建sift, surf之前要初始化nonfree模块
+	cv::initModule_nonfree();
+	_detector = cv::FeatureDetector::create("GridSIFT");
+	_descriptor = cv::DescriptorExtractor::create("SIFT");
+
+	vector< cv::KeyPoint > kp1, kp2; //关键点
 	
 
 	while (true)
@@ -150,34 +159,67 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 		
-		int i = 0;
-		for (int row = 0; row < 424; row++)
-		{
-			for (int col = 0; col < 512; col++)
-			{
-				UINT16* p = (UINT16*)i_depth.data;
-				UINT16 depthValue = static_cast<UINT16>(p[row * 512 + col]);
-				//cout << "depthValue       " << depthValue << endl;
-				if (depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != 0 && depthValue != 65535)
-				{
-					// 投影到彩色图上的坐标
-					Eigen::Vector3d uv_depth(col, row, 1.0f);
-					Eigen::Vector3d uv_color = (double)depthValue * intricdepth2RGB * uv_depth;//  / 1000.f +T / 1000;
+		//int i = 0;
+		//for (int row = 0; row < 424; row++)
+		//{
+		//	for (int col = 0; col < 512; col++)
+		//	{
+		//		UINT16* p = (UINT16*)i_depth.data;
+		//		UINT16 depthValue = static_cast<UINT16>(p[row * 512 + col]);
+		//		//cout << "depthValue       " << depthValue << endl;
+		//		if (depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != 0 && depthValue != 65535)
+		//		{
+		//			// 投影到彩色图上的坐标
+		//			Eigen::Vector3d uv_depth(col, row, 1.0f);
+		//			Eigen::Vector3d uv_color = (double)depthValue * intricDepth2RGB * uv_depth;//  / 1000.f +T / 1000;
 
-					int X = static_cast<int>(uv_color[0] / uv_color[2]);
-					int Y = static_cast<int>(uv_color[1] / uv_color[2]);
+		//			int X = static_cast<int>(uv_color[0] / uv_color[2]);
+		//			int Y = static_cast<int>(uv_color[1] / uv_color[2]);
+		//			//cout << "X:       " << X << "     Y:      " << Y << endl;
+		//			if ((X >= 0 && X < 1920) && (Y >= 0 && Y <1080 ))
+		//			{
+		//				//cout << "X:       " << X << "     Y:      " << Y << endl;
+		//				result.data[i * 4] = i_rgb.data[4 * (Y * 1920 + X)];
+		//				result.data[i * 4 + 1] = i_rgb.data[4 * (Y * 1920 + X) + 1];
+		//				result.data[i * 4 + 2] = i_rgb.data[4 * (Y * 1920 + X) + 2];
+		//				result.data[i * 4 + 3] = i_rgb.data[4 * (Y * 1920 + X) + 3];
+		//				
+		//			}
+		//		}
+		//		i++;
+		//	}
+		//}
+		int icor = 0;
+		for (int row = 0; row < 1080; row++)
+		{
+			for (int col = 0; col < 1920; col++)
+			{
+				/*UINT16* p = (UINT16*)i_rgb.data;
+				UINT16 r = static_cast<UINT16>(p[4*(row * 1920 + col)]);
+				UINT16 g = static_cast<UINT16>(p[4 * (row * 1920 + col)+1]);
+				UINT16 b = static_cast<UINT16>(p[4 * (row * 1920 + col)+2]);
+				UINT16 a = static_cast<UINT16>(p[4 * (row * 1920 + col) + 3]);*/
+				//cout << "depthValue       " << depthValue << endl;
+				//if (depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != 0 && depthValue != 65535)
+				{
+					// 彩色图投影到深度图上的坐标
+					Eigen::Vector3d uv_color(col, row, 1.0f);
+					Eigen::Vector3d uv_depth = intricRGB2Depth* uv_color;//  / 1000.f +T / 1000;
+
+					int X = static_cast<int>(uv_depth[0] / uv_depth[2]);
+					int Y = static_cast<int>(uv_depth[1] / uv_depth[2]);
 					//cout << "X:       " << X << "     Y:      " << Y << endl;
-					if ((X >= 0 && X < 1920) && (Y >= 0 && Y <1080 ))
+					if ((X >= 0 && X < 512) && (Y >= 0 && Y < 424))
 					{
 						//cout << "X:       " << X << "     Y:      " << Y << endl;
-						result.data[i * 4] = i_rgb.data[4 * (Y * 1920 + X)];
-						result.data[i * 4 + 1] = i_rgb.data[4 * (Y * 1920 + X) + 1];
-						result.data[i * 4 + 2] = i_rgb.data[4 * (Y * 1920 + X) + 2];
-						result.data[i * 4 + 3] = i_rgb.data[4 * (Y * 1920 + X) + 3];
-						
+						result.data[4 * (Y * 512 + X)] = i_rgb.data[4 * icor];
+						result.data[4 * (Y * 512 + X) + 1] = i_rgb.data[4 * icor + 1];
+						result.data[4 * (Y * 512 + X) + 2] = i_rgb.data[4 * icor + 2];
+						result.data[4 * (Y * 512 + X) + 3] = i_rgb.data[4 * icor + 3];
+
 					}
 				}
-				i++;
+				icor++;
 			}
 		}
 		// 显示
@@ -185,21 +227,25 @@ int _tmain(int argc, _TCHAR* argv[])
 		//if (waitKey(1) == VK_ESCAPE)
 		//	break;
 		imshow("depth", i_depth);
+		imwrite("data\\depth.png", i_depth);
 		if (waitKey(1) == VK_ESCAPE)
 			break;
+
 		imshow("mosic", result);
-		imwrite("img.png", result);
+		imwrite("data\\img.png", result);
 		if (waitKey(1) == VK_ESCAPE)
 			break;
-		detector->compute(result, kp1, descriptor_1);
-		cv::Mat imgShow(424, 512, CV_8UC3);
-		int fromTo1[] = {0,0,1,1,2,2};
-		mixChannels(&result, 1, &imgShow, 1, fromTo1, 3);
-		if (kp1.size()>0)
-		{
-			cv::drawKeypoints(result, kp1, imgShow, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
-			imshow("keypoints", imgShow);
-		}
+
+		_detector->detect(result, kp1);  //提取关键点
+
+		cv::Mat image;
+		image.create(result.rows, result.cols, CV_8UC3);
+		//src.copyTo(image);  
+		int fromTo1[] = { 0, 0, 1, 1, 2, 2 };
+		mixChannels(&result, 1, &image, 1, fromTo1, 3);
+		cv::drawKeypoints(result, kp1, image, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+		cv::imshow("keypoints", image);
+		cv::imwrite("data\\keypoints.png", image);
 		
 		/*imshow("ir", i_ir);
 		if (waitKey(1) == VK_ESCAPE)
