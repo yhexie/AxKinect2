@@ -2,9 +2,9 @@
 #include "AxPairwiseRegistration.h"
 
 
-
 AxPairwiseRegistration::AxPairwiseRegistration()
 {
+	transformation = Eigen::Matrix4d::Identity();
 }
 
 
@@ -31,16 +31,15 @@ void AxPairwiseRegistration::setTargetDepth(cv::Mat targetd_)
 	target_depth = targetd_;
 }
 
-void AxPairwiseRegistration::transformPointcloud(const Point3f cloud_in, Point3f& cloud_out,
+void AxPairwiseRegistration::transformPointcloud(const cv::Point3f cloud_in, cv::Point3f& cloud_out,
 	const Eigen::Matrix<double, 4, 4>  &transform)
 {
-
-		Eigen::Matrix<double, 3, 1> pt(cloud_in.x, cloud_in.y, cloud_in.z);
-		double x = static_cast<float> (transform(0, 0) * pt.coeffRef(0) + transform(0, 1) * pt.coeffRef(1) + transform(0, 2) * pt.coeffRef(2) + transform(0, 3));
-		double y = static_cast<float> (transform(1, 0) * pt.coeffRef(0) + transform(1, 1) * pt.coeffRef(1) + transform(1, 2) * pt.coeffRef(2) + transform(1, 3));
-		double z = static_cast<float> (transform(2, 0) * pt.coeffRef(0) + transform(2, 1) * pt.coeffRef(1) + transform(2, 2) * pt.coeffRef(2) + transform(2, 3));
-		Point3f pp(x, y, z);
-		cloud_out = pp;
+	Eigen::Matrix<double, 3, 1> pt(cloud_in.x, cloud_in.y, cloud_in.z);
+	double x = static_cast<float> (transform(0, 0) * pt.coeffRef(0) + transform(0, 1) * pt.coeffRef(1) + transform(0, 2) * pt.coeffRef(2) + transform(0, 3));
+	double y = static_cast<float> (transform(1, 0) * pt.coeffRef(0) + transform(1, 1) * pt.coeffRef(1) + transform(1, 2) * pt.coeffRef(2) + transform(1, 3));
+	double z = static_cast<float> (transform(2, 0) * pt.coeffRef(0) + transform(2, 1) * pt.coeffRef(1) + transform(2, 2) * pt.coeffRef(2) + transform(2, 3));
+	cv::Point3f pp(x, y, z);
+	cloud_out = pp;
 
 }
 
@@ -61,8 +60,8 @@ void AxPairwiseRegistration::PnPMatch()
 	_detector->detect(source_rgb, kp2);  //提取关键点
 	cv::Mat image;
 	cv::drawKeypoints(target_rgb, kp1, image, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-	cv::imshow("keypoints", image);
-	cv::imwrite("data\\keypoints.png", image);
+	/*cv::imshow("keypoints", image);
+	cv::imwrite("data\\keypoints.png", image);*/
 	cv::Mat desp1, desp2;
 	_descriptor->compute(target_rgb, kp1, desp1);
 	_descriptor->compute(source_rgb, kp2, desp2);
@@ -105,12 +104,14 @@ void AxPairwiseRegistration::PnPMatch()
 	for (size_t i = 0; i < goodMatches.size(); i++)
 	{
 		cv::Point2f p = kp1[goodMatches[i].queryIdx].pt;
-		ushort d = source_depth.ptr<ushort>(int(p.y))[int(p.x)];
+		// 获取d是要小心！x是向右的，y是向下的，所以y才是行，x是列！
+		ushort d = target_depth.ptr<ushort>(int(p.y))[int(p.x)];
 		if (d == 0)
 		{
 			continue;
 		}
 		pts_img.push_back(cv::Point2f(kp2[goodMatches[i].trainIdx].pt));
+		// 将(u,v,d)转成(x,y,z)
 		cv::Point3f pt(p.x, p.y, d);
 		cv::Point3f pd = point2dTo3d(pt, depth_intrinsic_par);
 		pts_obj.push_back(pd);
@@ -138,27 +139,9 @@ void AxPairwiseRegistration::PnPMatch()
 	cv::drawMatches(target_rgb, kp1, source_rgb, kp2, matchesShow, imgMatches);
 	cv::imshow("inlier matches", imgMatches);
 	cv::imwrite("data\\inliers.png", imgMatches);
-	cv::Mat R;
-	cv::Rodrigues(rvec, R);
-	transformation(0, 0) = R.at<double>(0, 0);
-	transformation(1, 0) = R.at<double>(1, 0);
-	transformation(2, 0) = R.at<double>(2, 0);
-	transformation(3, 0) = 0;
-
-	transformation(0, 1) = R.at<double>(0, 1);
-	transformation(1, 1) = R.at<double>(1, 1);
-	transformation(2, 1) = R.at<double>(2, 1);
-	transformation(3, 1) = 0;
-
-	transformation(0, 2) = R.at<double>(0, 2);
-	transformation(1, 2) = R.at<double>(1, 2);
-	transformation(2, 2) = R.at<double>(2, 2);
-	transformation(3, 2) = 0;
-
-	transformation(0, 3) = tvec.at<double>(0, 0);
-	transformation(1, 3) = tvec.at<double>(1, 0);
-	transformation(2, 3) = tvec.at<double>(2, 0);
-	transformation(3, 3) = 1;
+	waitKey(0);
+	Eigen::Isometry3d RT = cvMat2Eigen(rvec, tvec);
+	transformation = RT.matrix();
 }
 
 void AxPairwiseRegistration::setDepthIntrinsicParams(Camera_Intrinsic_Parameters params)

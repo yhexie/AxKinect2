@@ -166,7 +166,6 @@ int _tmain(int argc, _TCHAR* argv[])
 						current_calibrate_rgb.data[3 * (Y * 512 + X) + 1] = i_rgb.data[4 * icor + 1];
 						current_calibrate_rgb.data[3 * (Y * 512 + X) + 2] = i_rgb.data[4 * icor + 2];
 						//result.data[4 * (Y * 512 + X) + 3] = i_rgb.data[4 * icor + 3];
-
 					}
 				}
 				icor++;
@@ -184,23 +183,10 @@ int _tmain(int argc, _TCHAR* argv[])
 			break;*/
 		if (idxFrame==0)
 		{
+			/*last_depth = current_depth;
+			last_calibrate_rgb = current_calibrate_rgb;*/
 			current_depth.copyTo(last_depth);
 			current_calibrate_rgb.copyTo(last_calibrate_rgb);
-		}
-		else
-		{
-			AxPairwiseRegistration reg;
-			reg.setTargetRGB(last_calibrate_rgb);
-			reg.setSourceRGB(current_calibrate_rgb);
-			reg.setTargetDepth(last_depth);
-			reg.setSourceDepth(current_depth);
-			reg.setDepthIntrinsicParams(intricParams);
-			reg.PnPMatch();
-			Eigen::Matrix4d finalTransformation = reg.getTransformation();
-			cout << finalTransformation << endl;
-			//输出位姿
-			pose = pose * finalTransformation.inverse();
-
 			SYSTEMTIME st;
 			GetLocalTime(&st);
 			char output_file[32];
@@ -227,15 +213,13 @@ int _tmain(int argc, _TCHAR* argv[])
 						float cameraX = -static_cast<float>(x);
 						float cameraY = static_cast<float>(z);
 						float cameraZ = -static_cast<float>(y);
-						cv::Point3f p3(cameraX, cameraY, cameraZ);
-						cv::Point3f pout;
-						reg.transformPointcloud(p3, pout, pose);
+
 						if (file)
 						{
 							int b = current_calibrate_rgb.data[idx * 3 + 0];
 							int g = current_calibrate_rgb.data[idx * 3 + 1];
 							int r = current_calibrate_rgb.data[idx * 3 + 2];
-							fprintf(file, "%.4f %.4f %.4f %d %d %d\n", pout.x, pout.y, pout.z, r, g, b);
+							fprintf(file, "%.4f %.4f %.4f %d %d %d\n", cameraX, cameraY, cameraZ, r, g, b);
 						}
 					}
 					idx++;
@@ -243,7 +227,67 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			fclose(file);
 			cout << "文件保存成功" << endl;
+		}
+		else
+		{
+			AxPairwiseRegistration reg;
+			reg.setTargetRGB(last_calibrate_rgb);
+			reg.setSourceRGB(current_calibrate_rgb);
+			reg.setTargetDepth(last_depth);
+			reg.setSourceDepth(current_depth);
+			reg.setDepthIntrinsicParams(intricParams);
+			reg.PnPMatch();
+			Eigen::Matrix4d finalTransformation = reg.getTransformation();
+			cout << "RelateTransformation:" << endl;
+			cout << finalTransformation << endl;
+			//输出位姿
+			pose = pose * finalTransformation.inverse();
+			cout << "Pose:" << endl;
+			cout << pose << endl;
+			SYSTEMTIME st;
+			GetLocalTime(&st);
+			char output_file[32];
+			char output_RGB[32];
+			char output_depth[32];
+			sprintf_s(output_file, "%4d-%2d-%2d-%2d-%2d-%2d.txt", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			sprintf_s(output_RGB, "%4d-%2d-%2d-%2d-%2d-%2d-rgb.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			sprintf_s(output_depth, "%4d-%2d-%2d-%2d-%2d-%2d-depth.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			FILE *file = fopen(output_file, "w");
+			int idx = 0;
+			for (int row = 0; row < 424; row++)
+			{
+				for (int col = 0; col < 512; col++)
+				{
+					UINT16* p = (UINT16*)current_depth.data;
+					UINT16 depthValue = static_cast<UINT16>(p[row * 512 + col]);
 
+					if (depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != 0)
+					{
+						double z = double(depthValue) / camera_factor;
+						double x = (col - camera_cx) * z / camera_fx;
+						double y = (row - camera_cy) * z / camera_fy;
+						cv::Point3f p3(x, y, z);
+						cv::Point3f pout;
+						reg.transformPointcloud(p3, pout, pose);
+						float cameraX = -static_cast<float>(pout.x);
+						float cameraY = static_cast<float>(pout.z);
+						float cameraZ = -static_cast<float>(pout.y);
+						
+						if (file)
+						{
+							int b = current_calibrate_rgb.data[idx * 3 + 0];
+							int g = current_calibrate_rgb.data[idx * 3 + 1];
+							int r = current_calibrate_rgb.data[idx * 3 + 2];
+							fprintf(file, "%.4f %.4f %.4f %d %d %d\n", cameraX, cameraY, cameraZ, r, g, b);
+						}
+					}
+					idx++;
+				}
+			}
+			fclose(file);
+			cout << "文件保存成功" << endl;
+			/*last_depth = current_depth;
+			last_calibrate_rgb = current_calibrate_rgb;*/
 			current_depth.copyTo(last_depth);
 			current_calibrate_rgb.copyTo(last_calibrate_rgb);
 		}
