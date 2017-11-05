@@ -37,6 +37,27 @@ public:
 	{
 		return transformation;
 	}
+
+	// cvMat2Eigen
+	Eigen::Isometry3d cvMat2Eigen(cv::Mat& rvec, cv::Mat& tvec)
+	{
+		cv::Mat R;
+		cv::Rodrigues(rvec, R);
+		Eigen::Matrix3d r;
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				r(i, j) = R.at<double>(i, j);
+
+		// 将平移向量和旋转矩阵转换成变换矩阵
+		Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
+
+		Eigen::AngleAxisd angle(r);
+		T = angle;
+		T(0, 3) = tvec.at<double>(0, 0);
+		T(1, 3) = tvec.at<double>(1, 0);
+		T(2, 3) = tvec.at<double>(2, 0);
+		return T;
+	}
 public:
 	cv::Mat source_rgb;
 	cv::Mat target_rgb;

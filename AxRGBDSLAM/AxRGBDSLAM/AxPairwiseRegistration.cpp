@@ -30,7 +30,7 @@ void AxPairwiseRegistration::setTargetDepth(cv::Mat targetd_)
 {
 	target_depth = targetd_;
 }
-void AxPairwiseRegistration::Match()
+void AxPairwiseRegistration::PnPMatch()
 {
 	// 声明特征提取器与描述子提取器
 	cv::Ptr<cv::FeatureDetector> _detector;
@@ -114,25 +114,26 @@ void AxPairwiseRegistration::Match()
 	cv::drawMatches(target_rgb, kp1, source_rgb, kp2, matchesShow, imgMatches);
 	cv::imshow("inlier matches", imgMatches);
 	cv::imwrite("data\\inliers.png", imgMatches);
-
-	transformation(0, 0) = rvec.at<double>(0, 0);
-	transformation(1, 0) = rvec.at<double>(1, 0);
-	transformation(2, 0) = rvec.at<double>(2, 0);
+	cv::Mat R;
+	cv::Rodrigues(rvec, R);
+	transformation(0, 0) = R.at<double>(0, 0);
+	transformation(1, 0) = R.at<double>(1, 0);
+	transformation(2, 0) = R.at<double>(2, 0);
 	transformation(3, 0) = 0;
 
-	transformation(0, 1) = rvec.at<double>(0, 1);
-	transformation(1, 1) = rvec.at<double>(1, 1);
-	transformation(2, 1) = rvec.at<double>(2, 1);
+	transformation(0, 1) = R.at<double>(0, 1);
+	transformation(1, 1) = R.at<double>(1, 1);
+	transformation(2, 1) = R.at<double>(2, 1);
 	transformation(3, 1) = 0;
 
-	transformation(0, 2) = rvec.at<double>(0, 2);
-	transformation(1, 2) = rvec.at<double>(1, 2);
-	transformation(2, 2) = rvec.at<double>(2, 2);
+	transformation(0, 2) = R.at<double>(0, 2);
+	transformation(1, 2) = R.at<double>(1, 2);
+	transformation(2, 2) = R.at<double>(2, 2);
 	transformation(3, 2) = 0;
 
 	transformation(0, 3) = tvec.at<double>(0, 0);
-	transformation(1, 3) = tvec.at<double>(0, 1);
-	transformation(2, 3) = tvec.at<double>(0, 2);
+	transformation(1, 3) = tvec.at<double>(1, 0);
+	transformation(2, 3) = tvec.at<double>(2, 0);
 	transformation(3, 3) = 1;
 }
 
