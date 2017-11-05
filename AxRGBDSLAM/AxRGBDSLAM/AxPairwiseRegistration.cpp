@@ -30,6 +30,20 @@ void AxPairwiseRegistration::setTargetDepth(cv::Mat targetd_)
 {
 	target_depth = targetd_;
 }
+
+void AxPairwiseRegistration::transformPointcloud(const Point3f cloud_in, Point3f& cloud_out,
+	const Eigen::Matrix<double, 4, 4>  &transform)
+{
+
+		Eigen::Matrix<double, 3, 1> pt(cloud_in.x, cloud_in.y, cloud_in.z);
+		double x = static_cast<float> (transform(0, 0) * pt.coeffRef(0) + transform(0, 1) * pt.coeffRef(1) + transform(0, 2) * pt.coeffRef(2) + transform(0, 3));
+		double y = static_cast<float> (transform(1, 0) * pt.coeffRef(0) + transform(1, 1) * pt.coeffRef(1) + transform(1, 2) * pt.coeffRef(2) + transform(1, 3));
+		double z = static_cast<float> (transform(2, 0) * pt.coeffRef(0) + transform(2, 1) * pt.coeffRef(1) + transform(2, 2) * pt.coeffRef(2) + transform(2, 3));
+		Point3f pp(x, y, z);
+		cloud_out = pp;
+
+}
+
 void AxPairwiseRegistration::PnPMatch()
 {
 	// 声明特征提取器与描述子提取器
@@ -58,8 +72,8 @@ void AxPairwiseRegistration::PnPMatch()
 	// 可视化：显示匹配的特征
 	cv::Mat imgMatches;
 	cv::drawMatches(target_rgb, kp1, source_rgb, kp2, matches, imgMatches);
-	cv::imshow("matches", imgMatches);
-	cv::imwrite("data\\matches.png", imgMatches);
+	//cv::imshow("matches", imgMatches);
+	//cv::imwrite("data\\matches.png", imgMatches);
 	// 筛选匹配，把距离太大的去掉
 	// 这里使用的准则是去掉大于四倍最小距离的匹配
 	vector< cv::DMatch > goodMatches;
@@ -83,7 +97,11 @@ void AxPairwiseRegistration::PnPMatch()
 
 	std::vector<cv::Point3f> pts_obj;
 	vector<cv::Point2f> pts_img;
-
+	if (goodMatches.size() <= 5)
+	{
+		transformation=Eigen::Matrix4d::Identity();
+		return;
+	}
 	for (size_t i = 0; i < goodMatches.size(); i++)
 	{
 		cv::Point2f p = kp1[goodMatches[i].queryIdx].pt;
@@ -103,6 +121,12 @@ void AxPairwiseRegistration::PnPMatch()
 		{ 0, 0, 1 } };
 	cv::Mat cameraMatrix(3, 3, CV_64F, camera_matrix_data);
 	cv::Mat rvec, tvec, inliers;
+
+	if (pts_obj.size() == 0 || pts_img.size() == 0)
+	{
+		transformation = Eigen::Matrix4d::Identity();
+		return;
+	}
 	cv::solvePnPRansac(pts_obj, pts_img, cameraMatrix, cv::Mat(), rvec, tvec, false, 100, 1.0, 100, inliers);
 
 	std::vector<cv::DMatch> matchesShow;

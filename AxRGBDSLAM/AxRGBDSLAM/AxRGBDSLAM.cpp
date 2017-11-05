@@ -46,7 +46,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	intricDepth << camera_fx, 0, camera_cx,
 				   0, camera_fy, camera_cy,
 		           0, 0, 1;
-	Camera_Intrinsic_Parameters intricParams(camera_cx, camera_cy, camera_fx, camera_fy, camera_factor);
+	Camera_Intrinsic_Parameters intricParams(263.73696, 201.72450, 379.40726, 378.54472, 1000);
 
 	//两个相机之间的关系，目前缺少一个刚体变换阵
 	Eigen::Matrix3d intricDepth2RGB;
@@ -99,6 +99,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat current_depth(424, 512, CV_16UC1);
 	Mat current_calibrate_rgb(424, 512, CV_8UC3);
 	int idxFrame=0;
+	Eigen::Matrix4d pose = Eigen::Matrix4d::Identity();
 	while (true)
 	{
 		// 获取新的一个多源数据帧
@@ -172,15 +173,15 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 		// 显示
-		imshow("depth", current_depth);
+		/*imshow("depth", current_depth);
 		imwrite("data\\depth.png", current_depth);
 		if (waitKey(1) == VK_ESCAPE)
-			break;
+		break;*/
 
-		imshow("mosic", current_calibrate_rgb);
+		//imshow("mosic", current_calibrate_rgb);
 		//imwrite("data\\img.png", result);
-		if (waitKey(1) == VK_ESCAPE)
-			break;
+		/*if (waitKey(1) == VK_ESCAPE)
+			break;*/
 		if (idxFrame==0)
 		{
 			current_depth.copyTo(last_depth);
@@ -195,20 +196,16 @@ int _tmain(int argc, _TCHAR* argv[])
 			reg.setSourceDepth(current_depth);
 			reg.setDepthIntrinsicParams(intricParams);
 			reg.PnPMatch();
-			Eigen::Matrix4d transf = reg.getTransformation();
-			cout << transf << endl;
-			current_depth.copyTo(last_depth);
-			current_calibrate_rgb.copyTo(last_calibrate_rgb);
-		}
-		idxFrame++;
-		if (waitKey(100) == VK_SPACE)
-		{
+			Eigen::Matrix4d finalTransformation = reg.getTransformation();
+			cout << finalTransformation << endl;
+			//输出位姿
+			pose = pose * finalTransformation.inverse();
+
 			SYSTEMTIME st;
 			GetLocalTime(&st);
 			char output_file[32];
 			char output_RGB[32];
 			char output_depth[32];
-			char output_ir[32];
 			sprintf_s(output_file, "%4d-%2d-%2d-%2d-%2d-%2d.txt", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 			sprintf_s(output_RGB, "%4d-%2d-%2d-%2d-%2d-%2d-rgb.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 			sprintf_s(output_depth, "%4d-%2d-%2d-%2d-%2d-%2d-depth.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
@@ -220,22 +217,25 @@ int _tmain(int argc, _TCHAR* argv[])
 				{
 					UINT16* p = (UINT16*)current_depth.data;
 					UINT16 depthValue = static_cast<UINT16>(p[row * 512 + col]);
-					
+
 					if (depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != 0)
 					{
 						double z = double(depthValue) / camera_factor;
 						double x = (col - camera_cx) * z / camera_fx;
 						double y = (row - camera_cy) * z / camera_fy;
 
-  						float cameraX = -static_cast<float>(x);
+						float cameraX = -static_cast<float>(x);
 						float cameraY = static_cast<float>(z);
 						float cameraZ = -static_cast<float>(y);
+						cv::Point3f p3(cameraX, cameraY, cameraZ);
+						cv::Point3f pout;
+						reg.transformPointcloud(p3, pout, pose);
 						if (file)
 						{
 							int b = current_calibrate_rgb.data[idx * 3 + 0];
 							int g = current_calibrate_rgb.data[idx * 3 + 1];
 							int r = current_calibrate_rgb.data[idx * 3 + 2];
-   							fprintf(file, "%.4f %.4f %.4f %d %d %d\n", cameraX, cameraY, cameraZ, r, g, b);
+							fprintf(file, "%.4f %.4f %.4f %d %d %d\n", pout.x, pout.y, pout.z, r, g, b);
 						}
 					}
 					idx++;
@@ -243,7 +243,12 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			fclose(file);
 			cout << "文件保存成功" << endl;
+
+			current_depth.copyTo(last_depth);
+			current_calibrate_rgb.copyTo(last_calibrate_rgb);
 		}
+		idxFrame++;
+		
 		// 释放资源
 		SafeRelease(m_pColorFrame);
 		SafeRelease(m_pDepthFrame);

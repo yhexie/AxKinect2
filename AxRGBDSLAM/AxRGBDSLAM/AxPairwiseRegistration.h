@@ -31,6 +31,7 @@ public:
 		p.y = (point.y - camera.camera_fy)*p.z / camera.camera_fy;
 		return p;
 	}
+	void transformPointcloud(const Point3f cloud_in, Point3f& cloud_out,const Eigen::Matrix<double, 4, 4>  &transform);
 	void PnPMatch();
 
 	Eigen::Matrix4d getTransformation()
