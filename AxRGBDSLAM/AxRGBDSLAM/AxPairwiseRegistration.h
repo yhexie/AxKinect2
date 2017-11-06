@@ -13,6 +13,11 @@
 
 using namespace cv;
 using namespace Eigen;
+enum RESULT_MATCH
+{
+	NOT_MATCH = 0,
+	MATCH = 1
+};
 class AxPairwiseRegistration
 {
 public:
@@ -32,12 +37,23 @@ public:
 		p.y = (point.y - camera.camera_cy)*p.z / camera.camera_fy;
 		return p;
 	}
+	double normOfTransform(cv::Mat rvec, cv::Mat tvec)
+	{
+		return abs(min(cv::norm(rvec), 2 * M_PI - cv::norm(rvec))) + abs(cv::norm(tvec));
+	}
+
 	void transformPointcloud(const Point3f cloud_in, Point3f& cloud_out,const Eigen::Matrix<double, 4, 4>  &transform);
-	void PnPMatch();
+
+	int PnPMatch();
 
 	Eigen::Matrix4d getTransformation()
 	{
 		return transformation;
+	}
+
+	double getAbsMotionDistance()
+	{
+		return distance;
 	}
 
 	// cvMat2Eigen
@@ -65,8 +81,10 @@ public:
 	cv::Mat target_rgb;
 	cv::Mat source_depth;
 	cv::Mat target_depth;
-	Eigen::Matrix4d transformation;
 	Camera_Intrinsic_Parameters depth_intrinsic_par;
+
+	Eigen::Matrix4d transformation;
+	double distance;
 };
 #endif // !AXPAIRWISEREGISTRATION_HEADER
 

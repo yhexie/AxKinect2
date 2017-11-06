@@ -236,10 +236,43 @@ int _tmain(int argc, _TCHAR* argv[])
 			reg.setTargetDepth(last_depth);
 			reg.setSourceDepth(current_depth);
 			reg.setDepthIntrinsicParams(intricParams);
-			reg.PnPMatch();
+			int flag=reg.PnPMatch();
 			Eigen::Matrix4d finalTransformation = reg.getTransformation();
 			cout << "RelateTransformation:" << endl;
 			cout << finalTransformation << endl;
+			
+			if (flag == NOT_MATCH)
+			{
+				idxFrame++;
+
+				// 释放资源
+				SafeRelease(m_pColorFrame);
+				SafeRelease(m_pDepthFrame);
+				SafeRelease(m_pInfraredFrame);
+				SafeRelease(m_pColorFrameReference);
+				SafeRelease(m_pDepthFrameReference);
+				SafeRelease(m_pInfraredFrameReference);
+				SafeRelease(m_pMultiFrame);
+				continue;
+			}
+			else
+			{
+				double dist = reg.getAbsMotionDistance();
+				if (dist<0.1)
+				{
+					idxFrame++;
+
+					// 释放资源
+					SafeRelease(m_pColorFrame);
+					SafeRelease(m_pDepthFrame);
+					SafeRelease(m_pInfraredFrame);
+					SafeRelease(m_pColorFrameReference);
+					SafeRelease(m_pDepthFrameReference);
+					SafeRelease(m_pInfraredFrameReference);
+					SafeRelease(m_pMultiFrame);
+					continue;
+				}
+			}
 			//输出位姿
 			pose = pose * finalTransformation.inverse();
 			cout << "Pose:" << endl;

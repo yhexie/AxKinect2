@@ -43,7 +43,7 @@ void AxPairwiseRegistration::transformPointcloud(const cv::Point3f cloud_in, cv:
 
 }
 
-void AxPairwiseRegistration::PnPMatch()
+int AxPairwiseRegistration::PnPMatch()
 {
 	// 声明特征提取器与描述子提取器
 	cv::Ptr<cv::FeatureDetector> _detector;
@@ -99,7 +99,7 @@ void AxPairwiseRegistration::PnPMatch()
 	if (goodMatches.size() <= 5)
 	{
 		transformation=Eigen::Matrix4d::Identity();
-		return;
+		return NOT_MATCH;
 	}
 	for (size_t i = 0; i < goodMatches.size(); i++)
 	{
@@ -126,7 +126,7 @@ void AxPairwiseRegistration::PnPMatch()
 	if (pts_obj.size() == 0 || pts_img.size() == 0)
 	{
 		transformation = Eigen::Matrix4d::Identity();
-		return;
+		return NOT_MATCH;
 	}
 	cv::solvePnPRansac(pts_obj, pts_img, cameraMatrix, cv::Mat(), rvec, tvec, false, 100, 1.0, 100, inliers);
 
@@ -139,9 +139,17 @@ void AxPairwiseRegistration::PnPMatch()
 	cv::drawMatches(target_rgb, kp1, source_rgb, kp2, matchesShow, imgMatches);
 	cv::imshow("inlier matches", imgMatches);
 	cv::imwrite("data\\inliers.png", imgMatches);
+	
 	waitKey(0);
+	if (inliers.rows < 5)
+	{
+		transformation = Eigen::Matrix4d::Identity();
+		return NOT_MATCH;
+	}
+	distance = normOfTransform(rvec, tvec);
 	Eigen::Isometry3d RT = cvMat2Eigen(rvec, tvec);
 	transformation = RT.matrix();
+	return MATCH;
 }
 
 void AxPairwiseRegistration::setDepthIntrinsicParams(Camera_Intrinsic_Parameters params)
