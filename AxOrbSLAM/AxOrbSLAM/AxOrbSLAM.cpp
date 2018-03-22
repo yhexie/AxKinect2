@@ -95,7 +95,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//E:\LearnCode\ORBSLAM24Windows\Examples\RGB-D\TUM2.yaml  
 	//E:\LearnCode\ORBSLAM24Windows\rgbd_dataset_freiburg2_desk
 	//E:\LearnCode\ORBSLAM24Windows\Examples\RGB-D\associations\fr2_desk.txt
-	ORB_SLAM2::System SLAM("E:\\LearnCode\\ORBSLAM24Windows\\Vocabulary\\ORBvoc.txt", "E:\\CodeWork\\AxKinect2\\AxOrbSLAM\\AxOrbSLAM\\TUM2.yaml", ORB_SLAM2::System::RGBD, true);
+	std::string voc="E:\\LearnCode\\ORBSLAM24Windows\\Vocabulary\\ORBvoc.txt";
+	std::string camearParams = "E:\\CodeWork\\AxKinect2\\AxOrbSLAM\\AxOrbSLAM\\TUM2.yaml";
+	ORB_SLAM2::System SLAM(voc, camearParams, ORB_SLAM2::System::RGBD, true);
 	cv::Mat imRGB, imD;
 	while (true)
 	{
@@ -208,7 +210,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				idx++;
 			}
 		}
-
+		fclose(file);
 		idxFrame++;
 		double tframe = 10000.0*st.wYear + 100.0*st.wMonth + st.wDay + st.wHour / 100 + st.wMinute / 10000 + st.wSecond / 1000000;
 		SLAM.TrackRGBD(imRGB, imD, tframe);
