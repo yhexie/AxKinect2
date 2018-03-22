@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1D42A985-EA4D-4201-8B75-1BEE7131A5CC}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>KinectFirst</RootNamespace>
+    <ProjectName>AxOrbSLAM_Kinect</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(KINECTSDK20_DIR)\inc;D:\Program Files\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(KINECTSDK20_DIR)\lib\x64;D:\Program Files\opencv\build\x64\vc12\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world310d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_LIB;_WINDOWS;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(KINECTSDK20_DIR)\inc;D:\ReferenceSDK\opencv-2.4.10\build\include;D:\ReferenceSDK\opencv-2.4.10\build\include\opencv;E:\LearnCode\ORBSLAM24Windows;E:\LearnCode\ORBSLAM24Windows\include;E:\LearnCode\ORBSLAM24Windows\Thirdparty\eigen;E:\LearnCode\ORBSLAM24Windows\Thirdparty\Pangolin\include;E:\LearnCode\ORBSLAM24Windows\Thirdparty\Pangolin\build\src\include;E:\LearnCode\ORBSLAM24Windows\Thirdparty\Pangolin\build\external\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(KINECTSDK20_DIR)\lib\x64;E:/LearnCode/ORBSLAM24Windows/Thirdparty/DBoW2/lib;E:/LearnCode/ORBSLAM24Windows/Thirdparty/DBoW2/lib/$(Configuration);E:/LearnCode/ORBSLAM24Windows/Thirdparty/g2o/lib;E:/LearnCode/ORBSLAM24Windows/Thirdparty/g2o/lib/$(Configuration);E:/LearnCode/ORBSLAM24Windows/Thirdparty/Pangolin/lib;E:/LearnCode/ORBSLAM24Windows/Thirdparty/Pangolin/lib/$(Configuration);E:/LearnCode/ORBSLAM24Windows/lib;E:/LearnCode/ORBSLAM24Windows/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;..\lib\Debug\ORB_SLAM2.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_videostab2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_ts2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_superres2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_stitching2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_contrib2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_nonfree2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_ocl2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_gpu2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_photo2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_objdetect2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_legacy2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_video2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_ml2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_calib3d2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_features2d2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_highgui2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_imgproc2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_flann2410d.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_core2410d.lib;..\Thirdparty\Pangolin\lib\Debug\pangolin.lib;glu32.lib;opengl32.lib;..\Thirdparty\Pangolin\build\external\glew\lib\glewd.lib;C:\Program Files\OpenNI2\lib\OpenNI2.lib;..\Thirdparty\Pangolin\build\external\libpng\lib\libpng16_staticd.lib;..\Thirdparty\Pangolin\build\external\zlib\lib\zlibstaticd.lib;..\Thirdparty\Pangolin\build\external\libjpeg\lib\jpeg.lib;DBoW2.lib;g2o.lib;pangolin.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(KINECTSDK20_DIR)\inc;D:\ReferenceSDK\opencv-2.4.10\build\include;D:\ReferenceSDK\opencv-2.4.10\build\include\opencv;E:\LearnCode\ORBSLAM24Windows;E:\LearnCode\ORBSLAM24Windows\include;E:\LearnCode\ORBSLAM24Windows\Thirdparty\eigen;E:\LearnCode\ORBSLAM24Windows\Thirdparty\Pangolin\include;E:\LearnCode\ORBSLAM24Windows\Thirdparty\Pangolin\build\src\include;E:\LearnCode\ORBSLAM24Windows\Thirdparty\Pangolin\build\external\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(KINECTSDK20_DIR)\lib\x64;E:/LearnCode/ORBSLAM24Windows/Thirdparty/DBoW2/lib;E:/LearnCode/ORBSLAM24Windows/Thirdparty/DBoW2/lib/$(Configuration);E:/LearnCode/ORBSLAM24Windows/Thirdparty/g2o/lib;E:/LearnCode/ORBSLAM24Windows/Thirdparty/g2o/lib/$(Configuration);E:/LearnCode/ORBSLAM24Windows/Thirdparty/Pangolin/lib;E:/LearnCode/ORBSLAM24Windows/Thirdparty/Pangolin/lib/$(Configuration);E:/LearnCode/ORBSLAM24Windows/lib;E:/LearnCode/ORBSLAM24Windows/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;..\lib\Release\ORB_SLAM2.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_videostab2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_ts2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_superres2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_stitching2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_contrib2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_nonfree2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_ocl2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_gpu2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_photo2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_objdetect2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_legacy2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_video2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_ml2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_calib3d2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_features2d2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_highgui2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_imgproc2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_flann2410.lib;D:\ReferenceSDK\opencv-2.4.10\build\x64\vc12\lib\opencv_core2410.lib;..\Thirdparty\Pangolin\lib\Release\pangolin.lib;glu32.lib;opengl32.lib;..\Thirdparty\Pangolin\build\external\glew\lib\glew.lib;C:\Program Files\OpenNI2\lib\OpenNI2.lib;..\Thirdparty\Pangolin\build\external\libpng\lib\libpng16_static.lib;..\Thirdparty\Pangolin\build\external\zlib\lib\zlibstatic.lib;..\Thirdparty\Pangolin\build\external\libjpeg\lib\jpeg.lib;DBoW2.lib;g2o.lib;pangolin.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Camera_Intrinsic_Parameters.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AxOrbSLAM.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
