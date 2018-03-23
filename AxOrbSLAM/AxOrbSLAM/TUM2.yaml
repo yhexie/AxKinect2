@@ -10,17 +10,17 @@ Camera.fy: 201.72450
 Camera.cx: 379.40726
 Camera.cy: 378.54472
 
-Camera.k1: 0.231222
-Camera.k2: -0.784899
-Camera.p1: -0.003257
-Camera.p2: -0.000105
-Camera.k3: 0.917205
+Camera.k1: 0.03377
+Camera.k2: -0.04195 
+Camera.p1: 0.00519
+Camera.p2: 0.00734
+Camera.k3: 0.0
 
 Camera.width: 512
 Camera.height: 424
 
 # Camera frames per second 
-Camera.fps: 30.0
+Camera.fps: 10.0
 
 # IR projector baseline times fx (aprox.)
 Camera.bf: 40.0
@@ -39,7 +39,7 @@ DepthMapFactor: 1000.0
 #--------------------------------------------------------------------------------------------
 
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 500
+ORBextractor.nFeatures: 1000
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2

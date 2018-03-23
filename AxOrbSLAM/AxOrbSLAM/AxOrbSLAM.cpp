@@ -180,7 +180,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		sprintf_s(output_file, "%4d-%2d-%2d-%2d-%2d-%2d.txt", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 		sprintf_s(output_RGB, "%4d-%2d-%2d-%2d-%2d-%2d-rgb.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 		sprintf_s(output_depth, "%4d-%2d-%2d-%2d-%2d-%2d-depth.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-		FILE *file = fopen(output_file, "w");
+		/*FILE *file = fopen(output_file, "w");
 		int idx = 0;
 		for (int row = 0; row < 424; row++)
 		{
@@ -210,7 +210,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				idx++;
 			}
 		}
-		fclose(file);
+		fclose(file);*/
 		idxFrame++;
 		double tframe = 10000.0*st.wYear + 100.0*st.wMonth + st.wDay + st.wHour / 100 + st.wMinute / 10000 + st.wSecond / 1000000;
 		SLAM.TrackRGBD(imRGB, imD, tframe);
@@ -222,6 +222,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		SafeRelease(m_pDepthFrameReference);
 		SafeRelease(m_pInfraredFrameReference);
 		SafeRelease(m_pMultiFrame);
+		Sleep(100);
 		if (waitKey(1) == VK_ESCAPE)
 		{
 			break;
