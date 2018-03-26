@@ -7,6 +7,7 @@
 #include<opencv2/core/core.hpp>
 #include<System.h>
 #include "Camera_Intrinsic_Parameters.h"
+#include <conio.h>
 
 using namespace cv;
 using namespace std;
@@ -177,9 +178,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		char output_file[32];
 		char output_RGB[32];
 		char output_depth[32];
-		sprintf_s(output_file, "%4d-%2d-%2d-%2d-%2d-%2d.txt", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-		sprintf_s(output_RGB, "%4d-%2d-%2d-%2d-%2d-%2d-rgb.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-		sprintf_s(output_depth, "%4d-%2d-%2d-%2d-%2d-%2d-depth.png", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+		double tframe = 10000.0*st.wYear + 100.0*st.wMonth + st.wDay + 0.01*st.wHour + 0.0001*st.wMinute  + 0.000001*st.wSecond ;
+		sprintf_s(output_file, "%15f.txt", tframe);
+		sprintf_s(output_RGB, "%15f-rgb.png", tframe);
+		sprintf_s(output_depth, "%15f-depth.png", tframe);
 		FILE *file = fopen(output_file, "w");
 		int idx = 0;
 		for (int row = 0; row < 424; row++)
@@ -212,7 +214,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		fclose(file);
 		idxFrame++;
-		double tframe = 10000.0*st.wYear + 100.0*st.wMonth + st.wDay + st.wHour / 100 + st.wMinute / 10000 + st.wSecond / 1000000;
+		
 		SLAM.TrackRGBD(imRGB, imD, tframe);
 		// 释放资源
 		SafeRelease(m_pColorFrame);
@@ -223,9 +225,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		SafeRelease(m_pInfraredFrameReference);
 		SafeRelease(m_pMultiFrame);
 		Sleep(100);
-		if (waitKey(1) == VK_ESCAPE)
+		if (_kbhit())
 		{
-			break;
+			int ch = _getch();
+			if (ch == 32)
+			{
+				break;
+			}
 		}
 	}
 	// 关闭窗口，设备
