@@ -87,7 +87,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	// 三个图片格式
 	Mat i_rgb(1080, 1920, CV_8UC4);      //注意：这里必须为4通道的图，Kinect的数据只能以Bgra格式传出
 	UINT16 *depthData = new UINT16[424 * 512];
-
+	UINT16 *InfraredData = new UINT16[424 * 512];
+	Mat i_Infrared(424, 512, CV_8UC1);
 	Mat current_depth(424, 512, CV_16UC1);
 	Mat current_calibrate_rgb(424, 512, CV_8UC3);
 	int idxFrame=0;
@@ -99,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::string voc="E:\\LearnCode\\ORBSLAM24Windows\\Vocabulary\\ORBvoc.txt";
 	std::string camearParams = "E:\\CodeWork\\AxKinect2\\AxOrbSLAM\\AxOrbSLAM\\TUM2.yaml";
 	ORB_SLAM2::System SLAM(voc, camearParams, ORB_SLAM2::System::RGBD, true);
-	cv::Mat imRGB, imD;
+	cv::Mat imRGB, imD, imIR;
 	while (true)
 	{
 		// 获取新的一个多源数据帧
@@ -126,6 +127,17 @@ int _tmain(int argc, _TCHAR* argv[])
 		UINT nColorBufferSize = 1920 * 1080 * 4;
 		if (SUCCEEDED(hr))
 			hr = m_pColorFrame->CopyConvertedFrameDataToArray(nColorBufferSize, reinterpret_cast<BYTE*>(i_rgb.data), ColorImageFormat::ColorImageFormat_Bgra);
+
+		if (SUCCEEDED(hr))
+		{
+			hr = m_pInfraredFrame->CopyFrameDataToArray(424 * 512, InfraredData);
+			for (int i = 0; i < 512 * 424; i++)
+			{
+				// 0-255深度图，为了显示明显，只取深度数据的低8位
+				BYTE intensity = static_cast<BYTE>(InfraredData[i] % 256);
+				reinterpret_cast<BYTE*>(i_Infrared.data)[i] = intensity;
+			}
+		}
 
 		// depth拷贝到图片中
 		if (SUCCEEDED(hr))
@@ -171,17 +183,25 @@ int _tmain(int argc, _TCHAR* argv[])
 				icor++;
 			}
 		}
-		current_depth.copyTo(imD);
-		current_calibrate_rgb.copyTo(imRGB);
+		flip(current_depth, imD, 1);
+		//current_depth.copyTo(imD);
+		flip(current_calibrate_rgb, imRGB, 1);
+		flip(i_Infrared, imIR, 1);
+		//current_calibrate_rgb.copyTo(imRGB);		
 		SYSTEMTIME st;
 		GetLocalTime(&st);
 		char output_file[32];
 		char output_RGB[32];
 		char output_depth[32];
+		char output_ir[32];
 		double tframe = 10000.0*st.wYear + 100.0*st.wMonth + st.wDay + 0.01*st.wHour + 0.0001*st.wMinute  + 0.000001*st.wSecond ;
 		sprintf_s(output_file, "%15f.txt", tframe);
 		sprintf_s(output_RGB, "%15f-rgb.png", tframe);
 		sprintf_s(output_depth, "%15f-depth.png", tframe);
+		sprintf_s(output_ir, "%15f-ir.png", tframe);
+		imwrite(output_RGB, imRGB);
+		imwrite(output_depth, imD);
+		imwrite(output_ir, imIR);
 		FILE *file = fopen(output_file, "w");
 		int idx = 0;
 		for (int row = 0; row < 424; row++)
@@ -197,8 +217,8 @@ int _tmain(int argc, _TCHAR* argv[])
 					double x = (col - camera_cx) * z / camera_fx;
 					double y = (row - camera_cy) * z / camera_fy;
 
-					float cameraX = -static_cast<float>(x);
-					float cameraY = static_cast<float>(z);
+					float cameraX = static_cast<float>(x);
+					float cameraY = -static_cast<float>(z);
 					float cameraZ = -static_cast<float>(y);
 
 					if (file)
@@ -217,6 +237,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		
 		SLAM.TrackRGBD(imRGB, imD, tframe);
 		// 释放资源
+		delete depthData;
+		delete InfraredData;
 		SafeRelease(m_pColorFrame);
 		SafeRelease(m_pDepthFrame);
 		SafeRelease(m_pInfraredFrame);

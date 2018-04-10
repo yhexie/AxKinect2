@@ -10,7 +10,8 @@ AxPCTransform::AxPCTransform(QWidget *parent)
 
 void AxPCTransform::TransformPointClouds()
 {
-	std::string keyFramePath = "E:/PointCloudData/520KinectOrbSLAM/";
+	//std::string keyFramePath = "E:/PointCloudData/520fzOrbSLAM/";
+	std::string keyFramePath = "E:/PointCloudData/520OrbXXX/";
 	std::string keyFrameFilename="KeyFrameTrajectory.txt";
 	std::string Trajactry = keyFramePath + keyFrameFilename;
 	//读取关键帧位姿文件
@@ -53,9 +54,10 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 	{
 		return;
 	}
-	AngleAxisf V5;
-	Vector3f coord;
-	V5 = Q1;
+	Eigen::Isometry3f T = (Eigen::Isometry3f) Q1;
+	T.translation() = transform;
+
+	Vector4f coord;
 	float x, y, z;
 	int  a, b, c;
 	if (!isrgb)
@@ -67,10 +69,11 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 		fscanf(file, "%f %f %f %d %d %d", &x, &y, &z, &a, &b, &c);
 		float cameraX = static_cast<float>(x);
 		float cameraY = -static_cast<float>(z);
-		float cameraZ = static_cast<float>(y);
-		coord << cameraX, cameraY, cameraZ;   //默认的向量为列向量
-		coord = V5.matrix()*coord + transform;
-		fprintf(fileSave, "%f %f %f %d %d %d\n", coord.x(), coord.y(), coord.z(), a, b, c);
+		float cameraZ = -static_cast<float>(y);
+		coord << cameraX, cameraY, cameraZ,1;   //默认的向量为列向量
+		//coord = V5.matrix()*coord + (-1)*transform;
+		coord = T.inverse().matrix()*coord;
+		fprintf(fileSave, "%f %f %f %d %d %d\n", coord.x(), coord.y(),coord.z(), a, b, c);
 	}
 
 	while (feof(file) == 0) /*判断是否文件尾，不是则循环*/
@@ -85,10 +88,10 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 			fscanf(file, "%f %f %f %d %d %d", &x, &y, &z, &a, &b, &c);
 			float cameraX = static_cast<float>(x);
 			float cameraY = -static_cast<float>(z);
-			float cameraZ = static_cast<float>(y);
-			coord << cameraX, cameraY, cameraZ;   //默认的向量为列向量
-			coord = V5.matrix()*coord + transform;
-			fprintf(fileSave, "%f %f %f %d %d %d\n", coord.x(), coord.y(), coord.z(), a, b, c);
+			float cameraZ = -static_cast<float>(y);
+			coord << cameraX, cameraY, cameraZ,1;   //默认的向量为列向量
+			coord = T.inverse().matrix()*coord;
+			fprintf(fileSave, "%f %f %f %d %d %d\n", coord.x(), coord.y(),coord.z(), a, b, c);
 		}
 	}
 	fclose(file);
