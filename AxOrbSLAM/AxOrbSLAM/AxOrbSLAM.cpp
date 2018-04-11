@@ -88,9 +88,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat i_rgb(1080, 1920, CV_8UC4);      //注意：这里必须为4通道的图，Kinect的数据只能以Bgra格式传出
 	UINT16 *depthData = new UINT16[424 * 512];
 	UINT16 *InfraredData = new UINT16[424 * 512];
+	CameraSpacePoint* m_pCameraCoordinates = new CameraSpacePoint[512 * 424];
+	ColorSpacePoint* m_pColorCoordinates = new ColorSpacePoint[512 * 424];
+
 	Mat i_Infrared(424, 512, CV_8UC1);
 	Mat current_depth(424, 512, CV_16UC1);
 	Mat current_calibrate_rgb(424, 512, CV_8UC3);
+	Mat i_depthToRgb(424, 512, CV_8UC4);
 	int idxFrame=0;
 	Eigen::Matrix4d pose = Eigen::Matrix4d::Identity();
 	//E:\LearnCode\ORBSLAM24Windows\Vocabulary\ORBvoc.txt 
@@ -152,7 +156,36 @@ int _tmain(int argc, _TCHAR* argv[])
 			// 实际是16位unsigned int数据
 			//hr = m_pDepthFrame->CopyFrameDataToArray(424 * 512, reinterpret_cast<UINT16*>(i_depth.data));
 		}
+		ICoordinateMapper*      m_pCoordinateMapper = NULL;
+		hr = m_pKinectSensor->get_CoordinateMapper(&m_pCoordinateMapper);
 
+		HRESULT hr = m_pCoordinateMapper->MapDepthFrameToColorSpace(512 * 424, depthData, 512 * 424, m_pColorCoordinates);
+
+
+		if (SUCCEEDED(hr))
+		{
+			for (int i = 0; i < 424 * 512; i++)
+			{
+				ColorSpacePoint p = m_pColorCoordinates[i];
+				if (p.X != -std::numeric_limits<float>::infinity() && p.Y != -std::numeric_limits<float>::infinity())
+				{
+					int colorX = static_cast<int>(p.X + 0.5f);
+					int colorY = static_cast<int>(p.Y + 0.5f);
+
+					if ((colorX >= 0 && colorX < 1920) && (colorY >= 0 && colorY < 1080))
+					{
+						i_depthToRgb.data[i * 4] = i_rgb.data[(colorY * 1920 + colorX) * 4];
+						i_depthToRgb.data[i * 4 + 1] = i_rgb.data[(colorY * 1920 + colorX) * 4 + 1];
+						i_depthToRgb.data[i * 4 + 2] = i_rgb.data[(colorY * 1920 + colorX) * 4 + 2];
+						i_depthToRgb.data[i * 4 + 3] = i_rgb.data[(colorY * 1920 + colorX) * 4 + 3];
+					}
+				}
+			}
+		}
+		if (SUCCEEDED(hr))
+		{
+			HRESULT hr = m_pCoordinateMapper->MapDepthFrameToCameraSpace(512 * 424, depthData, 512 * 424, m_pCameraCoordinates);
+		}
 		int icor = 0;
 		for (int row = 0; row < 1080; row++)
 		{
@@ -186,7 +219,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		flip(current_depth, imD, 1);
 		//current_depth.copyTo(imD);
 		flip(current_calibrate_rgb, imRGB, 1);
-		flip(i_Infrared, imIR, 1);
+		//flip(i_Infrared, imIR, 1);
 		//current_calibrate_rgb.copyTo(imRGB);		
 		SYSTEMTIME st;
 		GetLocalTime(&st);
@@ -201,44 +234,33 @@ int _tmain(int argc, _TCHAR* argv[])
 		sprintf_s(output_ir, "%15f-ir.png", tframe);
 		imwrite(output_RGB, imRGB);
 		imwrite(output_depth, imD);
-		imwrite(output_ir, imIR);
+		//imwrite(output_ir, imIR);
 		FILE *file = fopen(output_file, "w");
 		int idx = 0;
-		for (int row = 0; row < 424; row++)
+
+		for (int i = 0; i < 512 * 424; i++)
 		{
-			for (int col = 0; col < 512; col++)
+			CameraSpacePoint p = m_pCameraCoordinates[i];
+			if (p.X != -std::numeric_limits<float>::infinity() && p.Y != -std::numeric_limits<float>::infinity() && p.Z != -std::numeric_limits<float>::infinity())
 			{
-				UINT16* p = (UINT16*)current_depth.data;
-				UINT16 depthValue = static_cast<UINT16>(p[row * 512 + col]);
-
-				if (depthValue != -std::numeric_limits<UINT16>::infinity() && depthValue != 0)
+				float cameraX = static_cast<float>(p.X);
+				float cameraY = static_cast<float>(p.Y);
+				float cameraZ = static_cast<float>(p.Z);
+				if (file)
 				{
-					double z = double(depthValue) / camera_factor;
-					double x = (col - camera_cx) * z / camera_fx;
-					double y = (row - camera_cy) * z / camera_fy;
-
-					float cameraX = static_cast<float>(x);
-					float cameraY = -static_cast<float>(z);
-					float cameraZ = -static_cast<float>(y);
-
-					if (file)
-					{
-						int b = current_calibrate_rgb.data[idx * 3 + 0];
-						int g = current_calibrate_rgb.data[idx * 3 + 1];
-						int r = current_calibrate_rgb.data[idx * 3 + 2];
-						fprintf(file, "%.4f %.4f %.4f %d %d %d\n", cameraX, cameraY, cameraZ, r, g, b);
-					}
+					int b = int(i_depthToRgb.data[i * 4 + 0]);
+					int g = int(i_depthToRgb.data[i * 4 + 1]);
+					int r = int(i_depthToRgb.data[i * 4 + 2]);
+					fprintf(file, "%.4f %.4f %.4f %d %d %d\n", cameraX, cameraY, cameraZ, r, g, b);
 				}
-				idx++;
 			}
 		}
+
 		fclose(file);
 		idxFrame++;
 		
 		SLAM.TrackRGBD(imRGB, imD, tframe);
 		// 释放资源
-		delete depthData;
-		delete InfraredData;
 		SafeRelease(m_pColorFrame);
 		SafeRelease(m_pDepthFrame);
 		SafeRelease(m_pInfraredFrame);

@@ -11,7 +11,7 @@ AxPCTransform::AxPCTransform(QWidget *parent)
 void AxPCTransform::TransformPointClouds()
 {
 	//std::string keyFramePath = "E:/PointCloudData/520fzOrbSLAM/";
-	std::string keyFramePath = "E:/PointCloudData/520OrbXXX/";
+	std::string keyFramePath = "E:/PointCloudData/520sss/";
 	std::string keyFrameFilename="KeyFrameTrajectory.txt";
 	std::string Trajactry = keyFramePath + keyFrameFilename;
 	//读取关键帧位姿文件
@@ -68,8 +68,8 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 	{
 		fscanf(file, "%f %f %f %d %d %d", &x, &y, &z, &a, &b, &c);
 		float cameraX = static_cast<float>(x);
-		float cameraY = -static_cast<float>(z);
-		float cameraZ = -static_cast<float>(y);
+		float cameraY = static_cast<float>(y);
+		float cameraZ = static_cast<float>(z);
 		coord << cameraX, cameraY, cameraZ,1;   //默认的向量为列向量
 		//coord = V5.matrix()*coord + (-1)*transform;
 		coord = T.inverse().matrix()*coord;
@@ -87,8 +87,8 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 		{
 			fscanf(file, "%f %f %f %d %d %d", &x, &y, &z, &a, &b, &c);
 			float cameraX = static_cast<float>(x);
-			float cameraY = -static_cast<float>(z);
-			float cameraZ = -static_cast<float>(y);
+			float cameraY = static_cast<float>(y);
+			float cameraZ = static_cast<float>(z);
 			coord << cameraX, cameraY, cameraZ,1;   //默认的向量为列向量
 			coord = T.inverse().matrix()*coord;
 			fprintf(fileSave, "%f %f %f %d %d %d\n", coord.x(), coord.y(),coord.z(), a, b, c);
