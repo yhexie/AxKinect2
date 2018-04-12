@@ -21,26 +21,31 @@ void AxPCTransform::TransformPointClouds()
 		return;
 	}
 	double frameId;
-	float x, y, z, a, b, c,d;
+	float x, y, z, a, b, c,w;
 	//x,y,z,四元数
-	fscanf(file, "%lf %f %f %f %f %f %f %f", &frameId, &x, &y, &z, &a, &b, &c, &d);
+	fscanf(file, "%lf %f %f %f %f %f %f %f", &frameId, &x, &y, &z, &a, &b, &c, &w);
 	while (feof(file) == 0) /*判断是否文件尾，不是则循环*/
 	{
-		fscanf(file, "%lf %f %f %f %f %f %f %f", &frameId, &x, &y, &z, &a, &b, &c, &d);
+		fscanf(file, "%lf %f %f %f %f %f %f %f", &frameId, &x, &y, &z, &a, &b, &c, &w);
 		char astr[20];
 		sprintf(astr, "%8.6lf", frameId);
 		std::string aas = astr;
 		std::string fileNameFrame = aas + ".txt";
-		Quaternionf Q1(a, b, c, d);
+		Eigen::Quaternionf Q1(w, a, b, c);
+		Eigen::Matrix3f R1 = Q1.toRotationMatrix();
+		Eigen::Matrix3f R2 = R1.transpose();
+		Eigen::Quaternionf Q2(R2);
 		Vector3f transf(x, y, z);
+		//Ow = -Rwc*tcw;
+		Vector3f tcw = -R1.inverse()*transf;
 		//传入需要转换的点云，和四元数, x, y, z, a, b, c, d
-		ReadPointCloud(keyFramePath,fileNameFrame, transf, Q1);
+		ReadPointCloud(keyFramePath, fileNameFrame, tcw, Q2);
 	}
 	fclose(file);
 	//
 }
 
-void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Vector3f& transform, Quaternionf &Q1)
+void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Vector3f& transform, Quaternionf &Q_1)
 {
 	std::string fileNameSave = filePath+"fusion_" + fileName;
 	std::string fileNameOpen = filePath +  fileName;
@@ -54,7 +59,8 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 	{
 		return;
 	}
-	Eigen::Isometry3f T = (Eigen::Isometry3f) Q1;
+
+	Eigen::Isometry3f T = (Eigen::Isometry3f) Q_1;
 	T.translation() = transform;
 
 	Vector4f coord;
@@ -89,7 +95,7 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 			float cameraX = static_cast<float>(x);
 			float cameraY = static_cast<float>(y);
 			float cameraZ = static_cast<float>(z);
-			coord << cameraX, cameraY, cameraZ,1;   //默认的向量为列向量
+			coord << cameraX, cameraY, cameraZ, 1;   //默认的向量为列向量
 			coord = T.inverse().matrix()*coord;
 			fprintf(fileSave, "%f %f %f %d %d %d\n", coord.x(), coord.y(),coord.z(), a, b, c);
 		}
