@@ -31,13 +31,12 @@ void AxPCTransform::TransformPointClouds()
 		sprintf(astr, "%8.6lf", frameId);
 		std::string aas = astr;
 		std::string fileNameFrame = aas + ".txt";
-		Eigen::Quaternionf Q1(w, a, b, c);
-		Eigen::Matrix3f R1 = Q1.toRotationMatrix();
-		Eigen::Matrix3f R2 = R1.transpose();
-		Eigen::Quaternionf Q2(R2);
-		Vector3f transf(x, y, z);
-		//Ow = -Rwc*tcw;
-		Vector3f tcw = -R1.inverse()*transf;
+		Eigen::Quaterniond Q1(w, a, b, c); // cv::Mat Rcw.t();
+		Eigen::Matrix3d R1 = Q1.toRotationMatrix();
+		Eigen::Matrix3d R2 = R1.transpose();//Rcw, cv::Mat Rcw = Tcw.rowRange(0,3).colRange(0,3);
+		Eigen::Quaterniond Q2(R2);
+		Eigen::Vector3d transf(x, y, z);//Ow, Ow = -Rwc*tcw;	
+		Eigen::Vector3d tcw = -R1.inverse()*transf;
 		//传入需要转换的点云，和四元数, x, y, z, a, b, c, d
 		ReadPointCloud(keyFramePath, fileNameFrame, tcw, Q2);
 	}
@@ -45,7 +44,7 @@ void AxPCTransform::TransformPointClouds()
 	//
 }
 
-void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Vector3f& transform, Quaternionf &Q_1)
+void AxPCTransform::ReadPointCloud(std::string filePath, std::string fileName, Eigen::Vector3d& transform, Eigen::Quaterniond &Q_1)
 {
 	std::string fileNameSave = filePath+"fusion_" + fileName;
 	std::string fileNameOpen = filePath +  fileName;
@@ -59,11 +58,11 @@ void AxPCTransform::ReadPointCloud(std::string filePath,std::string fileName, Ve
 	{
 		return;
 	}
+	Eigen::Isometry3d T = toSE3Quat(transform,Q_1);
+	/*Eigen::Isometry3f T = (Eigen::Isometry3f) Q_1;
+	T.translation() = transform;*/
 
-	Eigen::Isometry3f T = (Eigen::Isometry3f) Q_1;
-	T.translation() = transform;
-
-	Vector4f coord;
+	Vector4d coord;
 	float x, y, z;
 	int  a, b, c;
 	if (!isrgb)
