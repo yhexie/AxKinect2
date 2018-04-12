@@ -72,8 +72,8 @@ void AxPCTransform::ReadPointCloud(std::string filePath, std::string fileName, E
 	else
 	{
 		fscanf(file, "%f %f %f %d %d %d", &x, &y, &z, &a, &b, &c);
-		float cameraX = static_cast<float>(x);
-		float cameraY = static_cast<float>(y);
+		float cameraX = -static_cast<float>(x);
+		float cameraY = -static_cast<float>(y);
 		float cameraZ = static_cast<float>(z);
 		coord << cameraX, cameraY, cameraZ,1;   //默认的向量为列向量
 		//coord = V5.matrix()*coord + (-1)*transform;
@@ -91,8 +91,8 @@ void AxPCTransform::ReadPointCloud(std::string filePath, std::string fileName, E
 		else
 		{
 			fscanf(file, "%f %f %f %d %d %d", &x, &y, &z, &a, &b, &c);
-			float cameraX = static_cast<float>(x);
-			float cameraY = static_cast<float>(y);
+			float cameraX = -static_cast<float>(x);
+			float cameraY = -static_cast<float>(y);
 			float cameraZ = static_cast<float>(z);
 			coord << cameraX, cameraY, cameraZ, 1;   //默认的向量为列向量
 			coord = T.inverse().matrix()*coord;
